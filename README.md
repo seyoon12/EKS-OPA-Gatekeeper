@@ -3,9 +3,9 @@ OPA Gatekeeper를 이용해 kubernetes에 정책 기반 제어를 구현하였�
 EKS + Self-managed node + Gatekeeper 조합으로 **보안/자원 제약 정책**을 적용한 예제입니다.
 
 # 실행 process
-`/terraform/stacks/eks-cluster/ terraform apply`
-`/terraform/stacks/self-managed-node/ terraform apply`
-`ansible-playbook ansible-playbook
+`/terraform/stacks/eks-cluster/ terraform apply`  
+`/terraform/stacks/self-managed-node/ terraform apply`  
+`ansible-playbook ansible-playbook`  
 
 # 예시
 ### Namespace 라벨 제한
