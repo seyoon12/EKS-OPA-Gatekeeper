@@ -1,0 +1,22 @@
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: MinReplicas
+metadata:
+  name: deployment-min-replicas
+spec:
+  match:
+    kinds:
+      - apiGroups: ["apps"]
+        kinds: ["Deployment"]
+# namespace 별로 지정 가능
+    # namespaces: 
+    #   - default
+
+# namespace label 별로 지정 가능
+    # namespaceSelector: 
+    #   matchLabels:
+    #     team: default
+
+# except namespace 지정가능
+    # excludedNamespaces:
+    #   - kube-system
+    #   - monitoring

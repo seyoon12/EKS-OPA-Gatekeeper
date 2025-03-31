@@ -1,0 +1,22 @@
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: RequireServiceAccount
+metadata:
+  name: pod-must-have-sa
+spec:
+  match:
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Pod"]
+# namespace 별로 지정 가능
+    # namespaces: 
+    #   - default
+
+# namespace label 별로 지정 가능
+    # namespaceSelector: 
+    #   matchLabels:
+    #     team: default
+
+# except namespace 지정가능
+    # excludedNamespaces:
+    #   - kube-system
+    #   - monitoring

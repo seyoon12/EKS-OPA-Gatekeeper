@@ -1,0 +1,23 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: requireserviceaccount
+spec:
+  crd:
+    spec:
+      names:
+        kind: RequireServiceAccount
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package requireserviceaccount
+
+        violation[{"msg": msg}] {
+          input.review.kind.kind == "Pod"
+          not input.review.object.spec.serviceAccountName
+          msg := "pod must have a serviceAccountName"
+        }
+
+# package 부분은 name과 같아야 한다
+# 정책이 위반될 시 violation 부분이 실행된다
+# Pod 실행 시 sa가 들어가지 않으면 msg 실행

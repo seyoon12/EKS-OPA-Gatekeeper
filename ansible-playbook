@@ -1,0 +1,44 @@
+---
+- name: Install Kubecost using Helm
+  hosts: worker
+  tasks:
+    - name: set update
+      shell: yum update -y
+      become: yes
+
+- name: Install Kubecost using Helm
+  hosts: localhost
+  gather_facts: false
+  vars:
+    eks_cluster_name: kubernetes
+    ebs_irsa_role_arn: "{{ lookup('pipe', 'terraform output -raw -state=/terraform/terraform/stacks/eks-selfmanaged-node/terraform.tfstate ebs_csi_irsa_role_arn') }}"
+    aws_region: ap-northeast-2
+
+  tasks:
+    - name: Add EBS CSI Helm repo
+      community.kubernetes.helm_repository:
+        name: aws-ebs-csi-driver
+        repo_url: https://kubernetes-sigs.github.io/aws-ebs-csi-driver
+
+    - name: Associate OIDC provider with IAM for EKS
+      shell: |
+        eksctl utils associate-iam-oidc-provider \
+          --region {{ aws_region }} \
+          --cluster {{ eks_cluster_name }} \
+          --approve
+      register: oidc_output
+
+    - name: Create ebs-csi-controller ServiceAccount with IRSA
+      shell: |
+        kubectl get serviceaccount ebs-csi-controller-sa -n kube-system || \
+        kubectl create serviceaccount ebs-csi-controller-sa -n kube-system && \
+        kubectl annotate serviceaccount ebs-csi-controller-sa -n kube-system eks.amazonaws.com/role-arn={{ ebs_irsa_role_arn }} --overwrite
+
+    - name: Add Gatekeeper Helm repo
+      shell: |
+        helm repo add gatekeeper https://open-policy-agent.github.io/gatekeeper/charts
+        helm repo update
+        kubectl create ns gatekeeper-system --dry-run=client -o yaml | kubectl apply -f -
+        helm install gatekeeper gatekeeper/gatekeeper
+        -n gatekeeper-system
+        --create-namespace

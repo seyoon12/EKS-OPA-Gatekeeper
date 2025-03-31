@@ -1,0 +1,26 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: svcclusteriponly
+spec:
+  crd:
+    spec:
+      names:
+        kind: SVCClusterIPOnly
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package svcclusteriponly 
+
+        violation[{"msg": msg}] {
+          input.review.kind.kind == "Service"
+          svc_type := input.review.object.spec.type
+          svc_type != "ClusterIP"
+          msg := sprintf("only clusterip can create, found: %v", [svc_type])
+        }
+# package 부분은 name과 같아야 한다
+# 정책이 위반될 시 violation 부분이 실행된다
+# input 1.리소스가 service 인지 확인
+# input 2.svc type 값을 가져온다
+# svc type이 ClusterIp가 아닐경우 violation 발생 및 msg 실행
+# %v = value 값 출력

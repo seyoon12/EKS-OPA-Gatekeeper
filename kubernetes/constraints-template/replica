@@ -1,0 +1,23 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: minreplicas
+spec:
+  crd:
+    spec:
+      names:
+        kind: MinReplicas
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package minreplicas
+
+        violation[{"msg": msg}] {
+          input.review.kind.kind == "Deployment"
+          input.review.object.spec.replicas < 3
+          msg := "Minimum 3 replicas required"
+        }
+
+# package 부분은 name과 같아야 한다
+# 정책이 위반될 시 violation 부분이 실행된다
+# replica가 3개 이하 시 실행 제한

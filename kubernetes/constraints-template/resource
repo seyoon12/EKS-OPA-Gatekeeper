@@ -1,0 +1,49 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: requirelimits
+spec:
+  crd:
+    spec:
+      names:
+        kind: RequireLimits
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        # package 이름은 ConstraintTemplate의 metadata.name과 맞춰야 함
+
+        package requirelimits
+        # container spec 없을 시 제한
+
+        violation[{"msg": msg}] {
+          input.review.kind.kind == "Deployment"
+          container := input.review.object.spec.template.spec.containers[_]
+          not container.resources.limits
+          msg := sprintf("Container %v is missing resource limits", [container.name])
+        }
+
+        # memory 300Mi 초과 시 제한
+        violation[{"msg": msg}] {
+          input.review.kind.kind == "Deployment"
+          container := input.review.object.spec.template.spec.containers[_]
+          memory := container.resources.limits.memory
+          to_number(trim_unit(memory)) > 300
+          msg := sprintf("Container %v requests too much memory: %v", [container.name, memory])
+        }
+
+        # cpu 3개 이상 시 제한
+        violation[{"msg": msg}] {
+          input.review.kind.kind == "Deployment"
+          container := input.review.object.spec.template.spec.containers[_]
+          cpu := container.resources.limits.cpu
+          to_number(cpu) >= 3
+          msg := sprintf("Container %v requests too much CPU: %v", [container.name, cpu])
+        }
+
+        # 300Mi을 300 숫자로 변환 / Gi은 제외 / string을 number로 변환
+        trim_unit(val) = num {
+          not contains(val, "Gi")
+          val_mib := replace(val, "Mi", "")
+          num := to_number(val_mib)
+        }
+

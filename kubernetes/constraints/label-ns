@@ -1,0 +1,22 @@
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: NSRequiredLabels
+metadata:
+  name: ns-must-have-example-label
+spec:
+  match:
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Namespace"]
+# namespace 별로 지정 가능
+    # namespaces: 
+    #   - default
+
+# namespace label 별로 지정 가능
+    # namespaceSelector: 
+    #   matchLabels:
+    #     team: default
+
+# except namespace 지정가능
+    # excludedNamespaces:
+    #   - kube-system
+    #   - monitoring

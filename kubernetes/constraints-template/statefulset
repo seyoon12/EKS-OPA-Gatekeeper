@@ -1,0 +1,18 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: blockstatefulset
+spec:
+  crd:
+    spec:
+      names:
+        kind: BlockStatefulSet
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package blockstatefulset
+
+        violation[{"msg": msg}] {
+          input.review.kind.kind == "StatefulSet"
+          msg := "statefulset can not create"
+        }
